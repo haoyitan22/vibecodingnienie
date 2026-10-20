@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'">
+<title>捏捏猫</title>
+<style>
+  html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; user-select: none; }
+  #c { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+  .bubble {
+    position: absolute; pointer-events: none; color: #3b3226; background: #fff; border: 2px solid #3b3226;
+    border-radius: 14px; padding: 3px 10px; white-space: nowrap; transform: translate(-50%, -100%);
+    font: 16px "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", system-ui, sans-serif;
+    animation: pop 1.3s ease-out forwards;
+  }
+  @keyframes pop {
+    0% { opacity: 0; margin-top: 6px; } 15% { opacity: 1; margin-top: -4px; }
+    75% { opacity: 1; } 100% { opacity: 0; margin-top: -22px; }
+  }
+  .z { position: absolute; pointer-events: none; color: #7b8fb8; font: bold 18px system-ui, sans-serif; animation: zz 2.4s ease-out forwards; }
+  @keyframes zz { from { opacity: 0; transform: translate(0, 0) scale(.6) } 20% { opacity: 1 } to { opacity: 0; transform: translate(26px, -60px) scale(1.3) } }
+  .heart { position: absolute; pointer-events: none; color: #f07a8a; font-size: 18px; animation: float 1s ease-out forwards; }
+  @keyframes float { from { opacity: 1; transform: translate(0, 0) scale(.6) } to { opacity: 0; transform: translate(var(--dx), -60px) scale(1.2) } }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script src="art.js"></script>
+<script src="pet.js"></script>
+</body>
+</html>

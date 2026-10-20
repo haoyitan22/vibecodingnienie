@@ -1,0 +1,30 @@
+{
+  "name": "nienie-cat-pet",
+  "productName": "NieNieMiao",
+  "version": "1.0.0",
+  "description": "捏捏猫桌面宠物：一只会在桌面上散步、脸可以拉的果冻橘猫",
+  "main": "main.js",
+  "author": "haoyitan22",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --publish never"
+  },
+  "devDependencies": {
+    "electron": "44.9.0",
+    "electron-builder": "26.0.12"
+  },
+  "build": {
+    "appId": "com.haoyitan22.nieniemiao",
+    "productName": "NieNieMiao",
+    "files": ["main.js", "preload.js", "pet.html", "pet.js", "art.js", "icon.png"],
+    "directories": { "output": "dist", "buildResources": "build" },
+    "afterPack": "./build/adhoc-sign.js",
+    "mac": {
+      "identity": null,
+      "category": "public.app-category.entertainment",
+      "target": [{ "target": "dmg", "arch": ["arm64", "x64"] }]
+    },
+    "win": { "target": [{ "target": "portable", "arch": ["x64"] }] }
+  }
+}

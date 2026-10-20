@@ -1,0 +1,34 @@
+name: 打包桌面宠物
+
+on:
+  push:
+    branches: [main]
+    paths: ['desktop-pet/**', '.github/workflows/desktop-pet.yml']
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: desktop-pet
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run dist
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NieNieMiao-${{ runner.os }}
+          path: |
+            desktop-pet/dist/*.exe
+            desktop-pet/dist/*.dmg
+          if-no-files-found: error
