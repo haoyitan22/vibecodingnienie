@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>*{box-sizing:border-box}body{margin:0;font:14px system-ui,sans-serif}</style>
+<title>捏捏柴</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap">
+<style>
+/* Layout: one full-screen tatami room; slim header with a squish counter, a big jelly shiba face in the middle of the mat. */
+:root {
+  --bg: #f3efe2;
+  --mat: #dfe6c4;
+  --mat-line: #c9d3a6;
+  --mat-edge: #6f7f4a;
+  --ink: #3b3226;
+  --muted: #7a7060;
+  --accent: #e2802f;
+  --chip: #fffaf0;
+  --shadow: rgba(60, 45, 15, .22);
+  --bubble: #ffffff;
+  --bubble-ink: #3b3226;
+  --font-display: "ZCOOL KuaiLe", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+  --font-body: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1d1f1a; --mat: #2c3226; --mat-line: #363e2e; --mat-edge: #8a9a62;
+    --ink: #f1ead8; --muted: #b0a890; --chip: #2a2c25; --shadow: rgba(0, 0, 0, .45);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1d1f1a; --mat: #2c3226; --mat-line: #363e2e; --mat-edge: #8a9a62;
+  --ink: #f1ead8; --muted: #b0a890; --chip: #2a2c25; --shadow: rgba(0, 0, 0, .45);
+  color-scheme: dark;
+}
+
+html, body { height: 100%; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body);
+  overflow: hidden; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
+}
+.app {
+  height: 100%; display: flex; flex-direction: column; gap: 12px; box-sizing: border-box;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 14px 16px;
+}
+header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(26px, 5vw, 36px); margin: 0; line-height: 1; }
+h1 span { color: var(--accent); }
+.hint { color: var(--muted); font-size: 13px; margin: 4px 0 0; }
+.count {
+  font-family: var(--font-display); background: var(--chip); border: 2px solid var(--mat-edge);
+  border-radius: 999px; padding: 6px 14px; font-size: 16px; white-space: nowrap; font-variant-numeric: tabular-nums;
+}
+.count b { color: var(--accent); font-weight: 400; font-size: 20px; }
+
+#stage {
+  position: relative; flex: 1; min-height: 0; border-radius: 18px; overflow: hidden;
+  border: 6px solid var(--mat-edge); touch-action: none;
+  --sx: 50%; --sy: 90%; --sw: 200px;
+  background:
+    radial-gradient(calc(var(--sw) / 2) calc(var(--sw) / 9) at var(--sx) var(--sy), var(--shadow), transparent 100%),
+    repeating-linear-gradient(90deg, transparent 0 5px, var(--mat-line) 5px 6px),
+    linear-gradient(90deg, transparent calc(50% - 3px), var(--mat-edge) calc(50% - 3px) calc(50% + 3px), transparent calc(50% + 3px)),
+    var(--mat);
+}
+#jelly { position: absolute; inset: 0; width: 100%; height: 100%; display: block; outline: none; touch-action: none; }
+#jelly:focus-visible { box-shadow: inset 0 0 0 3px var(--accent); }
+.fallback { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; color: var(--muted); }
+
+.bubble {
+  position: absolute; pointer-events: none; font-family: var(--font-display); color: var(--bubble-ink);
+  background: var(--bubble); border: 2px solid var(--bubble-ink); border-radius: 14px; padding: 4px 10px;
+  font-size: 18px; white-space: nowrap; transform: translate(-50%, -100%);
+  animation: pop 1.1s ease-out forwards;
+}
+@keyframes pop {
+  0% { opacity: 0; margin-top: 6px; } 15% { opacity: 1; margin-top: -4px; }
+  75% { opacity: 1; } 100% { opacity: 0; margin-top: -26px; }
+}
+.heart { position: absolute; pointer-events: none; color: #f07a8a; font-size: 18px; animation: float 1s ease-out forwards; }
+@keyframes float { from { opacity: 1; transform: translate(0, 0) scale(.6) } to { opacity: 0; transform: translate(var(--dx), -70px) scale(1.2) } }
+@media (prefers-reduced-motion: reduce) { .heart, .bubble { animation-duration: .01s; } }
+</style>
+
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <h1>捏捏<span>柴</span></h1>
+      <p class="hint">揪住脸颊、鼻子、嘴巴、耳朵往外拉，松手它会弹回去 · 轻点一下戳它 · 手机上可以两根手指一起捏</p>
+    </div>
+    <div class="count" aria-live="polite">已经捏了 <b id="n">0</b> 下</div>
+  </header>
+  <main id="stage">
+    <canvas id="jelly" tabindex="0" aria-label="果冻柴犬，可以拉它的脸。按空格戳一下"></canvas>
+  </main>
+</div>
+
+<script>
+(() => {
+  const stage = document.getElementById('stage');
+  const canvas = document.getElementById('jelly');
+  const countEl = document.getElementById('n');
+  const gl = canvas.getContext('webgl', { premultipliedAlpha: true, antialias: true, alpha: true });
+  if (!gl) {
+    stage.insertAdjacentHTML('beforeend', '<div class="fallback">这个浏览器不支持 WebGL，柴犬没法变成果冻。换个浏览器试试？</div>');
+    return;
+  }
+
+  /* ---------- draw the shiba into textures (art space is 200 × 200) ---------- */
+  const TEX = 1024;
+  const FUR = '#e39a4c', CREAM = '#fff4e2', PINK = '#f6a7a0', EYE = '#2a211a';
+  function drawArt(variant) {
+    const c = document.createElement('canvas'); c.width = c.height = TEX;
+    const x = c.getContext('2d');
+    x.scale(TEX / 200, TEX / 200);
+    x.lineCap = 'round'; x.lineJoin = 'round';
+    const P = d => new Path2D(d);
+    const ell = (cx, cy, rx, ry, fill, rot = 0) => { x.beginPath(); x.ellipse(cx, cy, rx, ry, rot, 0, Math.PI * 2); x.fillStyle = fill; x.fill(); };
+    const stroke = (d, color, w) => { x.strokeStyle = color; x.lineWidth = w; x.stroke(P(d)); };
+    const fillStroke = (d, color, w) => { const p = P(d); x.fillStyle = color; x.fill(p); x.strokeStyle = color; x.lineWidth = w; x.stroke(p); };
+
+    // tail peeking out
+    stroke('M158 140 C200 132 202 78 172 78 C150 78 154 106 174 102', FUR, 18);
+    stroke('M172 78 C156 79 158 102 174 102', CREAM, 8);
+    // ears
+    fillStroke('M36 94 L50 32 L90 70 Z', FUR, 12);
+    fillStroke('M164 94 L150 32 L110 70 Z', FUR, 12);
+    fillStroke('M50 82 L56 50 L76 70 Z', PINK, 5);
+    fillStroke('M150 82 L144 50 L124 70 Z', PINK, 5);
+    // jelly body with soft inner light
+    const g = x.createRadialGradient(82, 98, 8, 100, 126, 96);
+    g.addColorStop(0, '#f7c27e'); g.addColorStop(.55, FUR); g.addColorStop(1, '#cc7f35');
+    ell(100, 126, 86, 66, g);
+    ell(100, 162, 60, 28, CREAM);
+    ell(100, 122, 48, 32, CREAM);
+    // eyebrow spots
+    ell(72, 82, 7.5, 5, CREAM); ell(128, 82, 7.5, 5, CREAM);
+    // eyes
+    if (variant === 'open') {
+      ell(74, 98, 7, 8, EYE); ell(126, 98, 7, 8, EYE);
+      ell(76.8, 95, 2.4, 2.4, '#fff'); ell(128.8, 95, 2.4, 2.4, '#fff');
+    } else if (variant === 'blink') {
+      stroke('M66 98 Q74 104 82 98', EYE, 4); stroke('M118 98 Q126 104 134 98', EYE, 4);
+    } else {
+      stroke('M66 91 L80 98 L66 105', EYE, 4.5); stroke('M134 91 L120 98 L134 105', EYE, 4.5);
+    }
+    // blush
+    x.globalAlpha = variant === 'squint' ? .95 : .6;
+    ell(55, 116, 12, 7, PINK); ell(145, 116, 12, 7, PINK);
+    x.globalAlpha = 1;
+    // nose + mouth
+    ell(100, 110, 8, 5.5, EYE); ell(97.5, 108.3, 2.2, 1.3, 'rgba(255,255,255,.6)');
+    if (variant === 'squint') {
+      fillStroke('M89 117 Q100 140 111 117 Z', '#b8434f', 1);
+      stroke('M89 117 Q100 140 111 117 Z', EYE, 3);
+      ell(100, 128, 5.5, 4, '#f28c96');
+    } else {
+      stroke('M89 117 Q94.5 124 100 117 Q105.5 124 111 117', EYE, 3);
+    }
+    // paws
+    for (const px of [72, 128]) { ell(px, 186, 16, 9, CREAM); x.strokeStyle = '#c97b33'; x.lineWidth = 2; x.beginPath(); x.ellipse(px, 186, 16, 9, 0, 0, Math.PI * 2); x.stroke(); }
+    // jelly shine
+    ell(36, 128, 6, 15, 'rgba(255,255,255,.35)', .25);
+    ell(100, 66, 18, 4.5, 'rgba(255,255,255,.35)');
+    ell(152, 140, 3.5, 7, 'rgba(255,255,255,.3)', -.3);
+    return c;
+  }
+
+  const arts = { open: drawArt('open'), blink: drawArt('blink'), squint: drawArt('squint') };
+  const alpha = arts.open.getContext('2d').getImageData(0, 0, TEX, TEX).data;
+  const opaqueAt = (u, v) => {
+    if (u < 0 || v < 0 || u >= 1 || v >= 1) return false;
+    return alpha[((Math.floor(v * TEX) * TEX + Math.floor(u * TEX)) << 2) + 3] > 40;
+  };
+
+  /* ---------- WebGL setup ---------- */
+  function shader(type, src) { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, shader(gl.VERTEX_SHADER, `
+    attribute vec2 a_p; attribute vec2 a_uv; uniform vec2 u_res; uniform vec3 u_box; varying vec2 v_uv;
+    void main() { vec2 px = u_box.xy + a_p * u_box.z; vec2 c = px / u_res * 2.0 - 1.0; gl_Position = vec4(c.x, -c.y, 0.0, 1.0); v_uv = a_uv; }`));
+  gl.attachShader(prog, shader(gl.FRAGMENT_SHADER, `
+    precision mediump float; uniform sampler2D u_t; varying vec2 v_uv;
+    void main() { gl_FragColor = texture2D(u_t, v_uv); }`));
+  gl.linkProgram(prog); gl.useProgram(prog);
+  const loc = { p: gl.getAttribLocation(prog, 'a_p'), uv: gl.getAttribLocation(prog, 'a_uv'), res: gl.getUniformLocation(prog, 'u_res'), box: gl.getUniformLocation(prog, 'u_box') };
+
+  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+  const textures = {};
+  for (const k in arts) {
+    const t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, arts[k]);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    textures[k] = t;
+  }
+  gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+
+  /* ---------- jelly mesh ---------- */
+  const N = 36, V = N + 1, NV = V * V;
+  const rest = new Float32Array(NV * 2), pos = new Float32Array(NV * 2), vel = new Float32Array(NV * 2);
+  const disp = new Float32Array(NV * 2);
+  const gOwner = new Int32Array(NV).fill(-1), gW = new Float32Array(NV), g0 = new Float32Array(NV * 2);
+  for (let r = 0; r < V; r++) for (let c = 0; c < V; c++) {
+    const i = r * V + c; rest[2 * i] = pos[2 * i] = c / N; rest[2 * i + 1] = pos[2 * i + 1] = r / N;
+  }
+  const idx = new Uint16Array(N * N * 6); let k = 0;
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+    const a = r * V + c, b = a + 1, d = a + V, e = d + 1;
+    idx.set([a, b, d, b, e, d], k); k += 6;
+  }
+  const uvBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, uvBuf); gl.bufferData(gl.ARRAY_BUFFER, rest, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(loc.uv); gl.vertexAttribPointer(loc.uv, 2, gl.FLOAT, false, 0, 0);
+  const posBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, posBuf); gl.bufferData(gl.ARRAY_BUFFER, pos, gl.DYNAMIC_DRAW);
+  gl.enableVertexAttribArray(loc.p); gl.vertexAttribPointer(loc.p, 2, gl.FLOAT, false, 0, 0);
+  const idxBuf = gl.createBuffer(); gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, idxBuf); gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idx, gl.STATIC_DRAW);
+
+  const K = 70, KN = 700, DAMP = 3.2, R = 0.13, MAXPULL = 0.42;
+
+  function step(h) {
+    for (let i = 0; i < NV * 2; i++) disp[i] = pos[i] - rest[i];
+    for (let r = 0; r < V; r++) for (let c = 0; c < V; c++) {
+      const i = r * V + c, ix = 2 * i, iy = ix + 1;
+      const owner = gOwner[i];
+      if (owner >= 0 && grabs.has(owner)) {
+        const gr = grabs.get(owner), w = gW[i];
+        const tx = g0[ix] + gr.dx * w, ty = g0[iy] + gr.dy * w;
+        vel[ix] = (tx - pos[ix]) / h; vel[iy] = (ty - pos[iy]) / h;
+        continue;
+      }
+      let mx = 0, my = 0, n = 0;
+      if (c > 0) { mx += disp[ix - 2]; my += disp[iy - 2]; n++; }
+      if (c < N) { mx += disp[ix + 2]; my += disp[iy + 2]; n++; }
+      if (r > 0) { mx += disp[ix - 2 * V]; my += disp[iy - 2 * V]; n++; }
+      if (r < N) { mx += disp[ix + 2 * V]; my += disp[iy + 2 * V]; n++; }
+      mx /= n; my /= n;
+      vel[ix] += (-K * disp[ix] + KN * (mx - disp[ix]) - DAMP * vel[ix]) * h;
+      vel[iy] += (-K * disp[iy] + KN * (my - disp[iy]) - DAMP * vel[iy]) * h;
+    }
+    for (let i = 0; i < NV * 2; i++) pos[i] += vel[i] * h;
+  }
+
+  /* ---------- layout ---------- */
+  let W = 0, H = 0, S = 0, OX = 0, OY = 0, dpr = 1;
+  function layout() {
+    const r = stage.getBoundingClientRect();
+    W = r.width - 12; H = r.height - 12; dpr = Math.min(devicePixelRatio || 1, 2);
+    canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+    S = Math.min(W * 0.92, H * 0.86); OX = (W - S) / 2; OY = (H - S) / 2 + S * 0.02;
+    stage.style.setProperty('--sx', (OX + S / 2 + 6) + 'px');
+    stage.style.setProperty('--sy', (OY + S * 0.965 + 6) + 'px');
+    stage.style.setProperty('--sw', (S * 0.78) + 'px');
+  }
+  layout(); addEventListener('resize', layout);
+
+  /* ---------- interaction ---------- */
+  let count = 0;
+  try { count = parseInt(localStorage.getItem('shiba-squish') || '0', 10) || 0; } catch (e) {}
+  countEl.textContent = count;
+  function bump() { count++; countEl.textContent = count; try { localStorage.setItem('shiba-squish', String(count)); } catch (e) {} }
+
+  function spawn(cls, html, x, y, extra) {
+    const el = document.createElement('div'); el.className = cls; el.textContent = html;
+    el.style.left = x + 'px'; el.style.top = y + 'px'; if (extra) extra(el);
+    stage.appendChild(el); el.addEventListener('animationend', () => el.remove());
+  }
+  const PULL_WORDS = ['呜…', '别拉啦', '软乎乎', '嘿嘿', '好痒'];
+  const OUCH_WORDS = ['痛痛！', '拉长啦！', '呜哇——', '脸要掉了！'];
+  const POKE_WORDS = ['汪！', '嗷呜', '再戳！', 'Q弹~', '咕叽'];
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+
+  const grabs = new Map();
+  const localPt = e => { const r = canvas.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  const toNorm = (x, y) => [(x - OX) / S, (y - OY) / S];
+
+  function nearestVertex(nx, ny) {
+    let best = -1, bd = 1e9;
+    for (let i = 0; i < NV; i++) {
+      const dx = pos[2 * i] - nx, dy = pos[2 * i + 1] - ny, d = dx * dx + dy * dy;
+      if (d < bd) { bd = d; best = i; }
+    }
+    return [best, Math.sqrt(bd)];
+  }
+  function onDog(nx, ny) {
+    const [i, d] = nearestVertex(nx, ny);
+    return d < 0.05 && opaqueAt(rest[2 * i], rest[2 * i + 1]);
+  }
+
+  canvas.addEventListener('pointerdown', e => {
+    const [x, y] = localPt(e), [nx, ny] = toNorm(x, y);
+    if (!onDog(nx, ny)) return;
+    e.preventDefault();
+    canvas.setPointerCapture(e.pointerId);
+    let any = false;
+    for (let i = 0; i < NV; i++) {
+      if (gOwner[i] >= 0) continue;
+      const dx = pos[2 * i] - nx, dy = pos[2 * i + 1] - ny, d = Math.sqrt(dx * dx + dy * dy);
+      if (d < R) {
+        const t = 1 - (d / R) * (d / R);
+        gOwner[i] = e.pointerId; gW[i] = t * t; g0[2 * i] = pos[2 * i]; g0[2 * i + 1] = pos[2 * i + 1]; any = true;
+      }
+    }
+    if (!any) return;
+    grabs.set(e.pointerId, { sx: x, sy: y, dx: 0, dy: 0, t: performance.now(), moved: 0, ouch: false, said: false });
+    canvas.style.cursor = 'grabbing';
+  });
+
+  canvas.addEventListener('pointermove', e => {
+    const [x, y] = localPt(e);
+    const g = grabs.get(e.pointerId);
+    if (!g) {
+      if (e.pointerType === 'mouse' && !grabs.size) canvas.style.cursor = onDog(...toNorm(x, y)) ? 'grab' : 'default';
+      return;
+    }
+    let dx = (x - g.sx) / S, dy = (y - g.sy) / S;
+    const len = Math.hypot(dx, dy);
+    if (len > 0) { const soft = MAXPULL * Math.tanh(len / MAXPULL) / len; dx *= soft; dy *= soft; }
+    g.dx = dx; g.dy = dy; g.moved = Math.max(g.moved, len * S);
+    if (!g.said && g.moved > 10) { g.said = true; bump(); spawn('bubble', pick(PULL_WORDS), x, y - 18); }
+    if (!g.ouch && len > 0.3) { g.ouch = true; spawn('bubble', pick(OUCH_WORDS), x, y - 18); }
+  });
+
+  function poke(nx, ny, x, y) {
+    bump();
+    for (let i = 0; i < NV; i++) {
+      const ix = 2 * i, iy = ix + 1;
+      const dx = pos[ix] - nx, dy = pos[iy] - ny, d = Math.hypot(dx, dy);
+      if (d < R * 1.8 && d > 1e-4) { const w = 1 - d / (R * 1.8); vel[ix] -= dx / d * 0.9 * w; vel[iy] -= dy / d * 0.9 * w; }
+      vel[iy] += (1 - rest[iy]) * 1.1;          // whole body squashes down...
+      vel[ix] += (rest[ix] - 0.5) * 1.0;        // ...and bulges sideways
+    }
+    spawn('bubble', pick(POKE_WORDS), x, y - 18);
+    for (let j = 0; j < 3; j++) spawn('heart', '♥', x - 8 + (Math.random() - .5) * 60, y - 10,
+      el => { el.style.setProperty('--dx', ((Math.random() - .5) * 60) + 'px'); el.style.animationDelay = (j * .08) + 's'; });
+  }
+
+  function release(e) {
+    const g = grabs.get(e.pointerId); if (!g) return;
+    grabs.delete(e.pointerId);
+    for (let i = 0; i < NV; i++) if (gOwner[i] === e.pointerId) gOwner[i] = -1;
+    const [x, y] = localPt(e);
+    if (g.moved < 6 && performance.now() - g.t < 350) poke(...toNorm(x, y), x, y);
+    else if (g.moved > 40) spawn('bubble', 'boing~', g.sx, g.sy - 18);
+    if (!grabs.size) canvas.style.cursor = 'grab';
+  }
+  canvas.addEventListener('pointerup', release);
+  canvas.addEventListener('pointercancel', release);
+
+  canvas.addEventListener('keydown', e => {
+    if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) {
+      e.preventDefault();
+      poke(0.5, 0.6, OX + S * 0.5, OY + S * 0.55);
+    }
+  });
+
+  /* ---------- blink ---------- */
+  let blinking = false;
+  (function blink() {
+    setTimeout(() => { blinking = true; setTimeout(() => { blinking = false; blink(); }, 140); }, 1800 + Math.random() * 3200);
+  })();
+
+  /* ---------- loop ---------- */
+  const H_STEP = 1 / 240;
+  let last = performance.now(), acc = 0, pokeFace = 0;
+  function frame(now) {
+    const dt = Math.min((now - last) / 1000, 0.05); last = now; acc += dt;
+    while (acc >= H_STEP) { step(H_STEP); acc -= H_STEP; }
+
+    // squint while pulled or still wobbling hard
+    let energy = 0; for (let i = 0; i < NV * 2; i += 8) energy += vel[i] * vel[i] + vel[i + 1] * vel[i + 1];
+    pokeFace = grabs.size || energy > 0.6 ? 0.35 : Math.max(0, pokeFace - dt);
+    const face = pokeFace > 0 ? 'squint' : (blinking ? 'blink' : 'open');
+
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.uniform2f(loc.res, W, H);
+    gl.uniform3f(loc.box, OX, OY, S);
+    gl.bindTexture(gl.TEXTURE_2D, textures[face]);
+    gl.bindBuffer(gl.ARRAY_BUFFER, posBuf); gl.bufferSubData(gl.ARRAY_BUFFER, 0, pos);
+    gl.drawElements(gl.TRIANGLES, idx.length, gl.UNSIGNED_SHORT, 0);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
